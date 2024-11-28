@@ -2,8 +2,6 @@ FROM ubuntu:22.04
 ARG USER=linux
 ARG PASSWORD=penguin
 ENV TZ=Asia/Tokyo
-ENV LC_ALL=ja_JP.UTF-8
-ENV LANG=${LC_ALL}
 ARG DEBCONF_FRONTEND=noninteractive
 ARG DEBIAN_FRONTEND=${DEBCONF_FRONTEND}
 # タイムゾーン周辺
@@ -21,6 +19,8 @@ RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/
     apt-get install -y locales; \
     locale-gen ja_JP.UTF-8
 # 足下回り
+ENV LC_ALL=ja_JP.UTF-8
+ENV LANG=${LC_ALL}
 RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
     --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
     apt-get update; \
