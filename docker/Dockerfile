@@ -46,7 +46,7 @@ RUN <<EOM
     rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 # ユーザー作成(linux)
-RUN --mount=type=secret,id=PASSWORD,env=PASSWORD <<EOM
+RUN --mount=type=secret,id=PASSWORD <<EOM
     PASSWORD=$(cat /run/secrets/PASSWORD)
     useradd -s /bin/bash ${USER}
     usermod -a -G sudo ${USER}
