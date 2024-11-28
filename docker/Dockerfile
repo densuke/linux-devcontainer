@@ -42,7 +42,7 @@ RUN <<EOM
     apt-get upgrade --auto-remove --purge -y
 EOM
 # ユーザー作成(linux)
-RUN --mount=type=secret=PASSWORD,env=PASSWORD <<EOM
+RUN --mount=type=secret,id=PASSWORD,env=PASSWORD <<EOM
     useradd -s /bin/bash ${USER}
     usermod -a -G sudo ${USER}
     echo "${USER}:${PASSWORD}" | chpasswd
