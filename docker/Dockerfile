@@ -8,10 +8,11 @@ ARG DEBCONF_FRONTEND=noninteractive
 ARG DEBIAN_FRONTEND=${DEBCONF_FRONTEND}
 # タイムゾーン周辺
 RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
-    apt-get install -y tzdata; \
+    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp <<EOM
+    apt-get update
+    apt-get install -y tzdata
     ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime; dpkg-reconfigure tzdata
+EOM
 # ロケール設定
 COPY locale-ja.sh /etc/profile.d/
 RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
