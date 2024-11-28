@@ -1,8 +1,3 @@
-# docker/webもしくはdocker/app以下の更新があったときに、
-# それぞれのDockerfileを使ってビルドし直す
-# 各イメージについては、以下のベース名を持つ
-# docker/web -> ghcr.io/densuke/laravelapp-web
-# docker/app -> ghcr.io/densuke/laravelapp-web
 # それぞれタグとして、ビルド時のepoch秒を設定する、これは人によりイメージが異なることを防ぐためである
 
 name: image CI
