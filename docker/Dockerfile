@@ -5,17 +5,18 @@ ENV TZ=Asia/Tokyo
 ARG DEBCONF_FRONTEND=noninteractive
 ARG DEBIAN_FRONTEND=${DEBCONF_FRONTEND}
 # タイムゾーン周辺
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp <<EOM
-    apt-get update
-    apt-get install -y tzdata
-    ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime; dpkg-reconfigure tzdata
-EOM
-# RUN <<EOM
+# RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
+#     --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp <<EOM
 #     apt-get update
 #     apt-get install -y tzdata
 #     ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime; dpkg-reconfigure tzdata
 # EOM
+RUN <<EOM
+    apt-get update
+    apt-get install -y tzdata
+    ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime; dpkg-reconfigure tzdata
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
+EOM
 
 # ロケール設定
 COPY locale-ja.sh /etc/profile.d/
@@ -23,6 +24,7 @@ RUN <<EOM
     apt-get update
     apt-get install -y locales
     locale-gen ja_JP.UTF-8
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 
 # 足下回り
@@ -31,6 +33,7 @@ ENV LANG=${LC_ALL}
 RUN <<EOM
     apt-get update
     apt-get install -y init openssh-server sudo
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 # ssh使えるようにポートを通知
 EXPOSE 22
@@ -40,6 +43,7 @@ RUN <<EOM
     apt-get update
     apt-get install -y git psmisc tree xz-utils bzip2 zip unzip podman curl
     apt-get upgrade --auto-remove --purge -y
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 # ユーザー作成(linux)
 RUN --mount=type=secret,id=PASSWORD,env=PASSWORD <<EOM
@@ -52,17 +56,20 @@ EOM
 RUN <<EOM
     apt-get update
     apt-get install -y less
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 # Chap.6
 RUN <<EOM
     apt-get update
     apt-get install -y mlocate man man-db
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 
 # Chap.7
 RUN <<EOM
     apt-get update
     apt-get install -y vim cowsay sl
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 # 鬼教官モードのファイル設定
 COPY vimrc.local /etc/vim/
@@ -72,6 +79,7 @@ RUN chmod 0644 /etc/vim/vimrc.local
 RUN <<EOM
     apt-get update
     apt-get install -y diffutils
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 
 # ホスト名
@@ -89,6 +97,7 @@ RUN cd /etc/skel && \
 RUN <<EOM
     apt-get update
     apt-get install -y bash-completion
+    rm -fr /var/lib/apt/lists/* /var/cache/apt/*
 EOM
 RUN echo 'session     required      pam_mkhomedir.so skel=/etc/skel umask=0022' >> /etc/pam.d/common-session
 # apt使用時のキャッシュデータクリア(Dockerビルド向け)を外す
