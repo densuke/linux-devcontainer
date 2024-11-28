@@ -6,7 +6,7 @@ on:
   push:
     paths:
       - "docker/**"
-      - ".github/workflows/ghcr.yml"
+      - ".github/workflows/CI.yml"
   # 手動で実行する場合
   workflow_dispatch:
 
