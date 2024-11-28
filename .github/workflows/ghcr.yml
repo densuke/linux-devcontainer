@@ -62,6 +62,10 @@ jobs:
           tags: |
             ${{ steps.epoch.outputs.epochtime }}
             ${{ github.ref_name }}
+      - name: QEMUの準備
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
       - name: Docker Buildxのセットアップ
         uses: docker/setup-buildx-action@v3
       - name: Dockerイメージのビルド(プッシュ無し)
