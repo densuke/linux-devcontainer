@@ -1,5 +1,6 @@
 FROM ubuntu:22.04
 ARG USER=linux
+ARG PASSWORD
 ENV TZ=Asia/Tokyo
 ARG DEBCONF_FRONTEND=noninteractive
 ARG DEBIAN_FRONTEND=${DEBCONF_FRONTEND}
@@ -18,60 +19,60 @@ EOM
 
 # ロケール設定
 COPY locale-ja.sh /etc/profile.d/
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
-    apt-get install -y locales; \
+RUN <<EOM
+    apt-get update
+    apt-get install -y locales
     locale-gen ja_JP.UTF-8
+EOM
+
 # 足下回り
 ENV LC_ALL=ja_JP.UTF-8
 ENV LANG=${LC_ALL}
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
+RUN <<EOM
+    apt-get update
     apt-get install -y init openssh-server sudo
+EOM
 # ssh使えるようにポートを通知
 EXPOSE 22
 
 # 章に無関係
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
-    apt-get install -y git psmisc tree xz-utils bzip2 zip unzip podman curl; \
+RUN <<EOM
+    apt-get update
+    apt-get install -y git psmisc tree xz-utils bzip2 zip unzip podman curl
     apt-get upgrade --auto-remove --purge -y
-
+EOM
 # ユーザー作成(linux)
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    useradd -s /bin/bash ${USER}; usermod -a -G sudo ${USER}; \
-    echo "${USER}:penguin" | chpasswd; \
-    cat /etc/passwd
-# Chap.4
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
-    apt-get install -y less
+RUN <<EOM
+    useradd -s /bin/bash ${USER}
+    usermod -a -G sudo ${USER}
+    echo "${USER}:${PASSWORD}" | chpasswd
+EOM
 
+# Chap.4
+RUN <<EOM
+    apt-get update
+    apt-get install -y less
+EOM
 # Chap.6
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
+RUN <<EOM
+    apt-get update
     apt-get install -y mlocate man man-db
+EOM
 
 # Chap.7
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
+RUN <<EOM
+    apt-get update
     apt-get install -y vim cowsay sl
+EOM
 # 鬼教官モードのファイル設定
 COPY vimrc.local /etc/vim/
 RUN chmod 0644 /etc/vim/vimrc.local
 
 # Chap.12
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
+RUN <<EOM
+    apt-get update
     apt-get install -y diffutils
+EOM
 
 # ホスト名
 #RUN echo sl > /etc/hostname
@@ -85,10 +86,10 @@ RUN cd /etc/skel && \
     curl -sL https://ozuma.sakura.ne.jp/linux/sample.tar.gz | tar xz
 
 # その他(あとで上に集約するかも)
-RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
-    --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
-    apt-get update; \
+RUN <<EOM
+    apt-get update
     apt-get install -y bash-completion
+EOM
 RUN echo 'session     required      pam_mkhomedir.so skel=/etc/skel umask=0022' >> /etc/pam.d/common-session
 # apt使用時のキャッシュデータクリア(Dockerビルド向け)を外す
 RUN rm -f /etc/apt/apt.conf.d/docker-clean
