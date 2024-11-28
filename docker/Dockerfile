@@ -1,6 +1,5 @@
 FROM ubuntu:22.04
 ARG USER=linux
-ARG PASSWORD=penguin
 ENV TZ=Asia/Tokyo
 ARG DEBCONF_FRONTEND=noninteractive
 ARG DEBIAN_FRONTEND=${DEBCONF_FRONTEND}
@@ -46,7 +45,7 @@ RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/
 RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
     --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/tmp \
     useradd -s /bin/bash ${USER}; usermod -a -G sudo ${USER}; \
-    echo "${USER}:${PASSWORD}" | chpasswd; \
+    echo "${USER}:penguin" | chpasswd; \
     cat /etc/passwd
 # Chap.4
 RUN --mount=type=cache,target=/var/lib/apt --mount=type=cache,target=/var/cache/apt \
