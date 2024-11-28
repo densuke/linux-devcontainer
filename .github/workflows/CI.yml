@@ -1,0 +1,64 @@
+# それぞれタグとして、ビルド時のepoch秒を設定する、これは人によりイメージが異なることを防ぐためである
+
+name: イメージのテスト
+on:
+  # ディレクトリdockerに変更があったときに実行
+  push:
+    paths:
+      - "docker/**"
+      - ".github/workflows/ghcr.yml"
+  # 手動で実行する場合
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  repo-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: ソース取得
+        uses: actions/checkout@v4
+      - name: このリポジトリがphp-devcontainerであることを確認
+        run: |
+          # このリポジトリの名前を取得する
+          repo_name="$(basename "$(pwd)")"
+          # このリポジトリの名前がlinux-devcontainerであることを確認し、そうでなければエラーを出して停止
+          if [ "$repo_name" != "linux-devcontainer" ]; then
+            echo "このリポジトリはイメージビルド用リポジトリではありません"
+            exit 1
+          fi
+  build:
+    runs-on: ubuntu-latest
+    needs: repo-check
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: 現在時刻のEpoch秒を取得してタグに利用
+        id: epoch
+        run: echo "epochtime=$(date +%s)" >> "$GITHUB_OUTPUT"
+      - name: タグ名の確認
+        run: echo "epoch = ${{ steps.epoch.outputs.epochtime }}"
+      - name: ソース取得
+        uses: actions/checkout@v4
+      - name: QEMUの準備
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64
+      - name: テストイメージのビルド
+        run: |
+          docker buildx build --platform linux/amd64 -t testimage -f docker/Dockerfile --secret PASSWORD="${{secrets.PASSWORD}}"  docker
+      - name: 接続テスト
+        run: |
+          NAME="test-${RANDOM}"
+          docker run -P --name "${NAME}" -d --rm --privileged  testimage
+          SSHPORT=$(docker container ps -f "name=${NAME}" | egrep -o '0.0.0.0:[0-9]+->22/tcp' | sed -r -e 's;.*:([0-9]+)->.*;\1;')
+          sudo apt-get update; sudo apt-get install -y sshpass
+          sshpass -p ${{ secrets.PASSWORD }} ssh -p ${SSHPORT} -o StrictHostKeyChecking=false linux@127.0.0.1 uname -a
+          # test for localed time
+          sshpass -p ${{ secrets.PASSWORD }} ssh -p ${SSHPORT} -o StrictHostKeyChecking=false linux@127.0.0.1 \
+            bash -ec "test -f /etc/profile.d/locale-ja.sh; source /etc/profile.d/locale-ja.sh; date" | egrep '年'
+          docker stop "${NAME}"
+          docker rm testimage
