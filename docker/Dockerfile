@@ -47,6 +47,7 @@ RUN <<EOM
 EOM
 # ユーザー作成(linux)
 RUN --mount=type=secret,id=PASSWORD,env=PASSWORD <<EOM
+    PASSWORD=$(cat /run/secrets/PASSWORD)
     useradd -s /bin/bash ${USER}
     usermod -a -G sudo ${USER}
     echo "${USER}:${PASSWORD}" | chpasswd
