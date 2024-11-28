@@ -49,7 +49,7 @@ jobs:
           platforms: linux/amd64
       - name: テストイメージのビルド
         run: |
-          docker buildx build --platform linux/amd64 -t testimage -f docker/Dockerfile --secret PASSWORD="${{secrets.PASSWORD}}"  docker
+          docker buildx build --platform linux/amd64 -t testimage -f docker/Dockerfile --secret=PASSWORD="${{secrets.PASSWORD}}"  docker
       - name: 接続テスト
         run: |
           NAME="test-${RANDOM}"
