@@ -73,6 +73,30 @@ jobs:
         with:
           context: docker
           # file: ./Dockerfile
+          # push: true
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          provenance: false
+          secrets: |
+            "PASSWORD=${{ secrets.PASSWORD }}"
+      - name: 接続テスト
+        run: |
+          NAME="test-${RANDOM}"
+          docker run -P --name "${NAME}" -d --rm --privileged  ${TESTIMAGE}
+          SSHPORT=$(docker container ps -f "name=${NAME}" | egrep -o '0.0.0.0:[0-9]+->22/tcp' | sed -r -e 's;.*:([0-9]+)->.*;\1;')
+          sudo apt-get update; sudo apt-get install -y sshpass
+          sshpass -p ${{ secrets.PASSWORD }} ssh -p ${SSHPORT} -o StrictHostKeyChecking=false linux@127.0.0.1 uname -a
+          # test for localed time
+          sshpass -p ${{ secrets.PASSWORD }} ssh -p ${SSHPORT} -o StrictHostKeyChecking=false linux@127.0.0.1 \
+            bash -ec "test -f /etc/profile.d/locale-ja.sh; source /etc/profile.d/locale-ja.sh; date" | egrep '年'
+          docker stop "${NAME}"
+      - name: Dockerイメージのビルド(プッシュ有り)
+        uses: docker/build-push-action@v4
+        with:
+          context: docker
+          # file: ./Dockerfile
           push: true
           # load: true
           tags: ${{ steps.meta.outputs.tags }}
